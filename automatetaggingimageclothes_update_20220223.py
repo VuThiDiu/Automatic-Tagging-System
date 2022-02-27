@@ -25,7 +25,7 @@ from keras.layers.merge import Concatenate
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Input
-
+from tensorflow.keras.optimizers import Adam
 import numpy as np
 
 dataset_folder_name = "E:\Crawler\change\data"
@@ -97,7 +97,7 @@ def plot_distribution(pd_series):
 
   fig.show()
 
-# plot_distribution(df['category'])
+plot_distribution(df['category'])
 
 
 # data generator
@@ -106,168 +106,139 @@ In order to input data to our Keras multi-output model, we will create a helper
 object to wr=ork as a data generator for out dataset. 
 """
 
+#index 
+print("starting generate image ")
 
-class DataGenerator():
-  """
-  Data generator for this dataset. This class should be used when training 
-  Keras multi-output model
-  """
-  def __init__(self, df):
-    self.df = df
-  
-  def generate_split_indexes(self):
-    p = np.random.permutation(len(self.df))
-    train_up_to = int(len(self.df) * train_test_split)
-    train_idx = p[:train_up_to]
-    test_idx = p[train_up_to:]
+print("starting get index")
+p = np.random.permutation(len(df))
+train_up_to = int(len(df) * train_test_split)
+train_idx = p[:train_up_to]
+test_idx = p[train_up_to:]
 
-    train_up_to = int(train_up_to * train_test_split)
-    train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
+train_up_to = int(train_up_to * train_test_split)
+train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
 
-    return train_idx, valid_idx, test_idx
-  
 
-  def preprocessing_image(self, img_path):
-    """
-    Use to perform some minor preprocessing on the image before inputting into the network
-    """
-    im = Image.open(img_path).convert('RGB')
-    im = im.resize((image_width, image_height))
 
-    im = np.array(im) / 255.0
-
-    return im
-    
-# using batch_size = 16 , sau nay thi co the su dung batch size khac de huan luyen model
-  def generate_images(self, image_idx, is_training, batch_size = 16):
+print("starting get array image")
+def generate_images(image_idx):
     """
     Using to generate a batch with images when training/ testing/ validating our Keras model
     """
 
     images, categories= [],  []
-    while True:
-      for idx in image_idx:
-        # đoạn này là lấy hẳn các properties của một ảnh ra này 
-          cloth = self.df.iloc[idx]          
-          category = cloth['category_id']
-          file = cloth['file']
+    for idx in image_idx:
+      cloth = df.iloc[idx]          
+      category = cloth['category_id']
+      file = cloth['file']
 
-          im = self.preprocessing_image(file)
-          try:
-            if int(category) <= max(dataset_dict['category_id']) and int(category) >= 0:
-              categories.append(to_categorical(category,len(dataset_dict['category_id'])).astype("uint8"))
+      im = Image.open(file).convert('LA')
+      im = im.resize((image_width, image_height))
+      im = np.array(im) / 255.0
+      try:
+        if int(category) <= max(dataset_dict['category_id']) and int(category) >= 0:
+          categories.append(to_categorical(category,len(dataset_dict['category_id'])).astype("uint8"))
+          images.append(im)
+        else :
+          continue
+      except Exception as err:
+        print(error)
+    return shuffle(images, categories)
 
-              images.append(im)
-            else :
-              continue
-          except Exception as err:
-            print(error) 
+print("starting with valid dataset")
+print(len(valid_idx))
+validX, validY = generate_images(valid_idx)
+
+print("starting with training dataset")
+print(len(train_idx))
+trainX, trainY = generate_images(train_idx)
+print("starting with test dataset")
+print(len(test_idx))
+testX, testY = generate_images(test_idx)
 
 
+trainX = np.array(trainX)
+trainY = np.array(trainY)
 
-          if len(images) >= batch_size:
-            yield shuffle(np.array(images), np.array(categories))
-            
-            images, categories = [],  []
+testX = np.array(testX)
+testY = np.array(testY)
 
-      if not is_training:
-        break
-
-data_generator = DataGenerator(df)
-train_idx, valid_idx, test_idx = data_generator.generate_split_indexes()
-
+validX = np.array(validX)
+validY = np.array(validY)
 
 model = Sequential()
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), activation = "relu"))
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
 
-model.add(Conv2D(64, (3,3), activation = "relu"))
 model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Dropout(0.25))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
 
-model.add(Conv2D(128, (3,3), activation = "relu"))
+model.add(Dropout(0.25))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Conv2D(64, (3,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Dropout(0.25))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Conv2D(128, (3,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
 model.add(Dropout(0.4))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
 
 model.add(Flatten())
-model.add(Dense(128, activation = "relu"))
+model.add(Dense(128))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
 model.add(Dropout(0.3))
-model.add(Dense(7, activation = 'softmax', name = 'output'))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Dense(7))
+model.add(Activation("softmax"))
+
 model.summary()
-
-#   # def build_isAdult_branch(self, input):
-#   #   x = Conv2D(32, (3,3), input_shape = (100,100,3), activation = "relu")(input)
-#   #   x = MaxPooling2D(pool_size=(2,2),strides=(1,1))(x)
-
-#   #   x = Conv2D(32, (3,3), input_shape = (100,100,3), activation = "relu")(x)
-#   #   x = MaxPooling2D(pool_size=(2,2),strides=(1,1))(x)
-
-#   #   x = Conv2D(64, (3,3), input_shape = (100,100,3), activation = "relu")(x)
-#   #   x = MaxPooling2D(pool_size=(2,2),strides=(1,1))(x)
-
-#   #   # x.add(Conv2D(32, (3,3)))
-#   #   # x.add(Activation('relu'))
-#   #   # x.add(MaxPooling2D(pool_size=(2,2)))
-
-#   #   # x.add(Conv2D(64, (3,3)))
-#   #   # x.add(Activation('relu'))
-#   #   # x.add(MaxPooling2D(pool_size=(2,2)))
-
-#   #   x = Flatten()(x)
-#   #   x = Dense(units = 64, activation = "relu")(x)
-#   #   x = Dropout(0.5)(x)
-#   #   x = Dense(units = 2, activation = 'sigmoid', name = 'adult_out' )(x)
-
-#   #   return x
-
-
-# # training model 
-from tensorflow.keras.optimizers import Adam
-# init_lr = 0.01
-# epochs = 100
-
-# opt = Adam(learning_rate = init_lr, decay = init_lr/epochs)
-# model.compile(optimizer=opt,
-#               # loss="categorical_crossentropy",
-#               loss_weights={
-#                   'output': 0.1,
-#                   # 'gender_out': 0.1,
-#                   # 'adult_out': 0.1
-#               },
-#               loss={
-#                   'output': 'categorical_crossentropy',
-#                   # 'color_out': 'categorical_crossentropy',
-#                   # 'gender_out': 'binary_crossentropy',
-#                   # 'adult_out': 'binary_crossentropy'
-#               },
-#               metrics=[tf.keras.metrics.Accuracy()]
-#               )
-
 
 learning_rate = 0.01
 epochs = 100
 
 opt = Adam(learning_rate = learning_rate)
-model.compile(loss= "categorical_crossentropy",
-               optimizer = opt,
-               metrics = [tf.keras.metrics.Accuracy()])
+model.compile(loss= "mean_squared_error",
+               optimizer = 'rmsprop',
+               metrics = ['accuracy'])
 
 from tensorflow.python.util import nest
-batch_size = 32
-valid_batch_size = 32
-train_gen = data_generator.generate_images(train_idx, is_training=True, batch_size = batch_size)
-valid_gen = data_generator.generate_images(valid_idx, is_training=True, batch_size = valid_batch_size)
 
 
-model.fit_generator(
-  tuple(train_gen),
+# aug = ImageDataGenerator(rotation_range=0.18, zoom_range=0.15, width_shift_range= 0.2, height_shift_range=0.2, horizontal_flip=True, input_shape=(image_height, image_width, 2))
+batch_size = 64
+valid_batch_size = 64
+
+print("starting training")
+history = model.fit(
+    # aug.flow(trainX, trainY, batch_size=batch_size),
+    trainX, trainY,
     steps_per_epoch=len(train_idx)//batch_size,
+    batch_size=batch_size, 
     epochs=epochs,
-    shuffle=True,
-    validation_data=tuple(valid_gen),
+    validation_data=(validX, validY),
     validation_steps=len(valid_idx)//valid_batch_size,
     verbose = 1)
-model.save("category.h5")
+model.save("../category.h5")
 # accuracy for category
 # plt.clf()
 # fig = go.Figure()
