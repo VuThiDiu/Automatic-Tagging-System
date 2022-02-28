@@ -213,12 +213,12 @@ model.add(Activation("softmax"))
 
 model.summary()
 
-learning_rate = 0.01
-epochs = 100
+learning_rate = 0.0001
+epochs = 30
 
 opt = Adam(learning_rate = learning_rate)
 model.compile(loss= "mean_squared_error",
-               optimizer = 'rmsprop',
+               optimizer = opt,
                metrics = ['accuracy'])
 
 from tensorflow.python.util import nest
