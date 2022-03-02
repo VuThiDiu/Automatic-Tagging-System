@@ -30,7 +30,7 @@ import numpy as np
 
 dataset_folder_name = "E:\Crawler\change\color"
 train_test_split = 0.8
-image_width = image_height = 100
+image_width = image_height = 200
 
 #tag predict 
 os.chdir("E:\Crawler\change\color")
@@ -290,42 +290,37 @@ history = model.fit(
     validation_steps=len(valid_idx)//valid_batch_size,
     verbose = 1)
 model.save("../color.h5")
-# accuracy for category
-# plt.clf()
-# fig = go.Figure()
-# fig.add_trace(go.Scatter(
-#     y=history.history('output_race'),
-#     name='Train'
-# ))
-# fig.add_trace(go.Scatter(
-#     y=history.history('val_output_race'),
-#     name='Valid'
-# ))
-# fig.update_layout(
-#     height=500,
-#     width=700,
-#     title='Accuracy for race feature',
-#     xaxis_title='Epoch',
-#     yaxis_title='Accuracy'
-# )
-# fig.show()
 
-# accuracy for color
-# plt.clf()
-# fig = go.Figure()
-# fig.add_trace(go.Scatter(
-#     y=history.history('color_output_race'),
-#     name='Train'
-# ))
-# fig.add_trace(go.Scatter(
-#     y=history.history('val_color_output_race'),
-#     name='Valid'
-# ))
-# fig.update_layout(
-#     height=500,
-#     width=700,
-#     title='Accuracy for color feature',
-#     xaxis_title='Epoch',
-#     yaxis_title='Accuracy'
-# )
-# fig.show()
+#accuracy for color
+plt.clf()
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    y=history.history['accuracy'],
+    name='Train'
+))
+fig.add_trace(go.Scatter(
+    y=history.history['val_accuracy'],
+    name='Valid'
+))
+fig.update_layout(
+    height=500,
+    width=700,
+    title='Accuracy for color feature',
+    xaxis_title='Epoch',
+    yaxis_title='Accuracy'
+)
+fig.show()
+
+
+#test data
+
+# test_batch_size = 128
+# correct_prediction = 0
+# incorrect_prediction = 0
+# number_data_test = len(testX)
+# for x in range(0,number_data_test):
+#   predict = model.predict(testX[x])
+#   print(predict)
+#   if (predict == testY[x]) : correct_prediction+=1
+#   else : incorrect_prediction+=1
+# print ("accuracy for test data : ", correct_prediction/number_data_test)
