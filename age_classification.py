@@ -30,24 +30,19 @@ import numpy as np
 
 dataset_folder_name = "E:\Crawler\change\data"
 train_test_split = 0.8
-image_width = image_height = 100
+image_width = image_height = 255
 
 #tag predict 
 os.chdir("E:\Crawler\change\data")
 dataset_dict = {
-    'category_id' : {
-        0:'quần dài', 
-        1:'quần short', 
-        2:'váy liền',
-        3:'áo phông', 
-        4:'áo sơ mi',
-        5:'áo nỉ',
-        6:'áo khoác' 
+    'age_id' : {
+        0: 'trẻ em',
+        1: 'người lớn'
     },
 }
 
 
-dataset_dict['category_alias'] = dict((g,i) for i, g in dataset_dict['category_id'].items())
+dataset_dict['age_alias'] = dict((g,i) for i, g in dataset_dict['age_id'].items())
 # extracting the data from the dataset
 def parse_dataset(dataset_path):
 
@@ -64,8 +59,8 @@ def parse_dataset(dataset_path):
       filename = os.path.splitext(filename)[0]
       filename = filename.split(' ')[0]
       listname = filename.split('_')
-      category,color,gender,isAdult = listname[0], listname[1], listname[2], listname[3]
-      return dataset_dict['category_id'][int(category)], listname[0]
+      category,color,gender,age = listname[0], listname[1], listname[2], listname[3]
+      return dataset_dict['age_id'][int(age)], listname[0]
     except Exception as ex:
       pass
   files = os.listdir(dataset_path)
@@ -76,7 +71,7 @@ def parse_dataset(dataset_path):
 
   df = pd.DataFrame(records)
   df['file'] = files
-  df.columns = ['category', 'category_id',  'file']
+  df.columns = ['age', 'age_id',  'file']
 
   return df
 
@@ -97,7 +92,7 @@ def plot_distribution(pd_series):
 
   fig.show()
 
-plot_distribution(df['category'])
+plot_distribution(df['age'])
 
 
 # data generator
@@ -129,15 +124,15 @@ def generate_images(image_idx):
     images, categories= [],  []
     for idx in image_idx:
       cloth = df.iloc[idx]          
-      category = cloth['category_id']
+      age = cloth['age_id']
       file = cloth['file']
 
-      im = Image.open(file).convert('LA')
+      im = Image.open(file).convert('RGB')
       im = im.resize((image_width, image_height))
       im = np.array(im) / 255.0
       try:
-        if int(category) <= max(dataset_dict['category_id']) and int(category) >= 0:
-          categories.append(to_categorical(category,len(dataset_dict['category_id'])).astype("uint8"))
+        if int(age) <= max(dataset_dict['age_id']) and int(age) >= 0:
+          categories.append(to_categorical(age,len(dataset_dict['age_id'])).astype("uint8"))
           images.append(im)
         else :
           continue
@@ -167,7 +162,7 @@ validX = np.array(validX)
 validY = np.array(validY)
 
 model = Sequential()
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
@@ -175,18 +170,9 @@ model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Dropout(0.25))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
-
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Activation("relu"))
-model.add(BatchNormalization())
-
-# model.add(Dropout(0.25))
-# model.add(Activation("relu"))
-# model.add(BatchNormalization())
 
 model.add(Conv2D(64, (3,3), padding = "same"))
 model.add(Activation("relu"))
@@ -196,54 +182,34 @@ model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Dropout(0.25))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Conv2D(128, (3,3), padding = "same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-# model.add(Dropout(0.25))
-# model.add(Activation("relu"))
-# model.add(BatchNormalization())
-
-model.add(Conv2D(64, (3,3), padding = "same"))
+model.add(Dropout(0.4))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
-
-model.add(MaxPooling2D(pool_size=(2,2)))
-model.add(Activation("relu"))
-model.add(BatchNormalization())
-
-# model.add(Dropout(0.25))
-# model.add(Activation("relu"))
-# model.add(BatchNormalization())
-
-# model.add(Conv2D(128, (3,3), padding = "same"))
-# model.add(Activation("relu"))
-# model.add(BatchNormalization())
-
-# model.add(Dropout(0.4))
-# model.add(Activation("relu"))
-# model.add(BatchNormalization())
 
 model.add(Flatten())
-model.add(Dense(64))
+model.add(Dense(128))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-model.add(Dropout(0.5))
+model.add(Dropout(0.3))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-model.add(Dense(7))
+model.add(Dense(2))
 model.add(Activation("softmax"))
 
 model.summary()
 
-learning_rate = 0.0001
-epochs = 50
+learning_rate = 0.001
+epochs = 20
 
 opt = Adam(learning_rate = learning_rate)
 model.compile(loss= "mean_squared_error",
@@ -254,42 +220,56 @@ from tensorflow.python.util import nest
 
 
 # aug = ImageDataGenerator(rotation_range=0.18, zoom_range=0.15, width_shift_range= 0.2, height_shift_range=0.2, horizontal_flip=True, input_shape=(image_height, image_width, 2))
-batch_size = 64
-valid_batch_size = 64
+batch_size = 16
+valid_batch_size = 16
 
 print("starting training")
 history = model.fit(
     # aug.flow(trainX, trainY, batch_size=batch_size),
     trainX, trainY,
-    steps_per_epoch=len(train_idx)//batch_size,
+    steps_per_epoch=len(trainX)//batch_size,
     batch_size=batch_size, 
     epochs=epochs,
     validation_data=(validX, validY),
-    validation_steps=len(valid_idx)//valid_batch_size,
+    validation_steps=len(validX)//valid_batch_size,
     verbose = 1)
-model.save("../category.h5")
-
-
+model.save("../age.h5")
 # accuracy for category
-plt.clf()
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    y=history.history['accuracy'],
-    name='Train'
-))
-fig.add_trace(go.Scatter(
-    y=history.history['val_accuracy'],
-    name='Valid'
-))
-fig.update_layout(
-    height=500,
-    width=700,
-    title='Accuracy for color feature',
-    xaxis_title='Epoch',
-    yaxis_title='Accuracy'
-)
-fig.show()
+# plt.clf()
+# fig = go.Figure()
+# fig.add_trace(go.Scatter(
+#     y=history.history('output_race'),
+#     name='Train'
+# ))
+# fig.add_trace(go.Scatter(
+#     y=history.history('val_output_race'),
+#     name='Valid'
+# ))
+# fig.update_layout(
+#     height=500,
+#     width=700,
+#     title='Accuracy for race feature',
+#     xaxis_title='Epoch',
+#     yaxis_title='Accuracy'
+# )
+# fig.show()
 
-# evaluating our model on the test set 
-test_bacth_size =  128
-
+# accuracy for color
+# plt.clf()
+# fig = go.Figure()
+# fig.add_trace(go.Scatter(
+#     y=history.history('color_output_race'),
+#     name='Train'
+# ))
+# fig.add_trace(go.Scatter(
+#     y=history.history('val_color_output_race'),
+#     name='Valid'
+# ))
+# fig.update_layout(
+#     height=500,
+#     width=700,
+#     title='Accuracy for color feature',
+#     xaxis_title='Epoch',
+#     yaxis_title='Accuracy'
+# )
+# fig.show()# -*- coding: utf-8 -*-
