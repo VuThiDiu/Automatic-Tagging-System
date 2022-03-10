@@ -112,14 +112,16 @@ print("starting generate image ")
 
 print("starting get index")
 p = np.random.permutation(len(df))
+# train_up_to = int(len(df) * train_test_split)
+# train_idx = p[:train_up_to]
+# test_idx = p[train_up_to:]
+
+# train_up_to = int(train_up_to * train_test_split)
+# train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
+
 train_up_to = int(len(df) * train_test_split)
-train_idx = p[:train_up_to]
-test_idx = p[train_up_to:]
-
-train_up_to = int(train_up_to * train_test_split)
-train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
-
-
+train_idx =  p[:train_up_to]
+valid_idx =  p[train_up_to:]
 
 print("starting get array image")
 def generate_images(image_idx):
@@ -153,119 +155,194 @@ validX, validY = generate_images(valid_idx)
 print("starting with training dataset")
 print(len(train_idx))
 trainX, trainY = generate_images(train_idx)
-print("starting with test dataset")
-print(len(test_idx))
-testX, testY = generate_images(test_idx)
+# print("starting with test dataset")
+# print(len(test_idx))
+# testX, testY = generate_images(test_idx)
 
 
 trainX = np.array(trainX)
 trainY = np.array(trainY)
 
-testX = np.array(testX)
-testY = np.array(testY)
+# testX = np.array(testX)
+# testY = np.array(testY)
 
 validX = np.array(validX)
 validY = np.array(validY)
 
 
-#model input_shape (100,100,3)
+# input_training = Input(shape=(image_width,image_height, 3))
+# top_conv1 = Conv2D(filters=48,kernel_size=(11,11),strides=(4,4),
+#                             input_shape=(255,255,3),activation='relu')(input_training)
+# top_conv1 = BatchNormalization()(top_conv1)
+# top_conv1 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_conv1)
 
-input_training = Input(shape=(image_width,image_height, 3))
-top_conv1 = Conv2D(filters=48,kernel_size=(11,11),strides=(4,4),
-                            input_shape=(255,255,3),activation='relu')(input_training)
-top_conv1 = BatchNormalization()(top_conv1)
-top_conv1 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_conv1)
+# top_top_conv2 = Lambda(lambda x : x[:,:,:,:24])(top_conv1)
+# top_bot_conv2 = Lambda(lambda x : x[:,:,:,24:])(top_conv1)
 
-top_top_conv2 = Lambda(lambda x : x[:,:,:,:24])(top_conv1)
-top_bot_conv2 = Lambda(lambda x : x[:,:,:,24:])(top_conv1)
+# top_top_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv2)
+# top_top_conv2 = BatchNormalization()(top_top_conv2)
+# top_top_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv2)
 
-top_top_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv2)
-top_top_conv2 = BatchNormalization()(top_top_conv2)
-top_top_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv2)
+# top_bot_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv2)
+# top_bot_conv2 = BatchNormalization()(top_bot_conv2)
+# top_bot_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv2)
 
-top_bot_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv2)
-top_bot_conv2 = BatchNormalization()(top_bot_conv2)
-top_bot_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv2)
+# # concat 2 features map
+# top_conv3 = Concatenate()([top_top_conv2,top_bot_conv2])
+# top_conv3 = Convolution2D(filters=192,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_conv3)
 
-# concat 2 features map
-top_conv3 = Concatenate()([top_top_conv2,top_bot_conv2])
-top_conv3 = Convolution2D(filters=192,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_conv3)
+# #split feature map by half
+# top_top_conv4 = Lambda(lambda x : x[:,:,:,:96])(top_conv3)
+# top_bot_conv4 = Lambda(lambda x : x[:,:,:,96:])(top_conv3)
 
-#split feature map by half
-top_top_conv4 = Lambda(lambda x : x[:,:,:,:96])(top_conv3)
-top_bot_conv4 = Lambda(lambda x : x[:,:,:,96:])(top_conv3)
+# top_top_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
+# top_bot_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
 
-top_top_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
-top_bot_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
+# top_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
+# top_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv5) 
 
-top_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
-top_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv5) 
+# top_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
+# top_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv5)
 
-top_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
-top_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv5)
+# top_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
+# top_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv5) 
 
-top_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_top_conv4)
-top_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_top_conv5) 
+# top_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
+# top_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv5)
 
-top_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(top_bot_conv4)
-top_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(top_bot_conv5)
+# # Bottom branch
+# bottom_conv1 = Convolution2D(filters=48,kernel_size=(11,11),strides=(4,4),
+#                             input_shape=(255,255,3),activation='relu')(input_training)
+# bottom_conv1 = BatchNormalization()(bottom_conv1)
+# bottom_conv1 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_conv1)
 
-# Bottom branch
-bottom_conv1 = Convolution2D(filters=48,kernel_size=(11,11),strides=(4,4),
-                            input_shape=(255,255,3),activation='relu')(input_training)
-bottom_conv1 = BatchNormalization()(bottom_conv1)
-bottom_conv1 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_conv1)
+# # second bottom convolution layer
+# # split feature map by half
+# bottom_top_conv2 = Lambda(lambda x : x[:,:,:,:24])(bottom_conv1)
+# bottom_bot_conv2 = Lambda(lambda x : x[:,:,:,24:])(bottom_conv1)
 
-# second bottom convolution layer
-# split feature map by half
-bottom_top_conv2 = Lambda(lambda x : x[:,:,:,:24])(bottom_conv1)
-bottom_bot_conv2 = Lambda(lambda x : x[:,:,:,24:])(bottom_conv1)
+# bottom_top_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv2)
+# bottom_top_conv2 = BatchNormalization()(bottom_top_conv2)
+# bottom_top_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_top_conv2)
 
-bottom_top_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv2)
-bottom_top_conv2 = BatchNormalization()(bottom_top_conv2)
-bottom_top_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_top_conv2)
+# bottom_bot_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv2)
+# bottom_bot_conv2 = BatchNormalization()(bottom_bot_conv2)
+# bottom_bot_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_bot_conv2)
 
-bottom_bot_conv2 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv2)
-bottom_bot_conv2 = BatchNormalization()(bottom_bot_conv2)
-bottom_bot_conv2 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_bot_conv2)
+# # third bottom convolution layer
+# # concat 2 feature map
+# bottom_conv3 = Concatenate()([bottom_top_conv2,bottom_bot_conv2])
+# bottom_conv3 = Convolution2D(filters=192,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_conv3)
 
-# third bottom convolution layer
-# concat 2 feature map
-bottom_conv3 = Concatenate()([bottom_top_conv2,bottom_bot_conv2])
-bottom_conv3 = Convolution2D(filters=192,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_conv3)
+# # fourth bottom convolution layer
+# # split feature map by half
+# bottom_top_conv4 = Lambda(lambda x : x[:,:,:,:96])(bottom_conv3)
+# bottom_bot_conv4 = Lambda(lambda x : x[:,:,:,96:])(bottom_conv3)
 
-# fourth bottom convolution layer
-# split feature map by half
-bottom_top_conv4 = Lambda(lambda x : x[:,:,:,:96])(bottom_conv3)
-bottom_bot_conv4 = Lambda(lambda x : x[:,:,:,96:])(bottom_conv3)
+# bottom_top_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv4)
+# bottom_bot_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv4)
 
-bottom_top_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv4)
-bottom_bot_conv4 = Convolution2D(filters=96,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv4)
+# # fifth bottom convolution layer
+# bottom_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv4)
+# bottom_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_top_conv5) 
 
-# fifth bottom convolution layer
-bottom_top_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_top_conv4)
-bottom_top_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_top_conv5) 
+# bottom_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv4)
+# bottom_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_bot_conv5)
 
-bottom_bot_conv5 = Convolution2D(filters=64,kernel_size=(3,3),strides=(1,1),activation='relu',padding='same')(bottom_bot_conv4)
-bottom_bot_conv5 = MaxPooling2D(pool_size=(3,3),strides=(2,2))(bottom_bot_conv5)
+# #concanate top and bottom branch
+# conv_output = Concatenate()([top_top_conv5,top_bot_conv5,bottom_top_conv5,bottom_bot_conv5])
 
-#concanate top and bottom branch
-conv_output = Concatenate()([top_top_conv5,top_bot_conv5,bottom_top_conv5,bottom_bot_conv5])
+# # Flatten
+# flatten = Flatten()(conv_output)
 
-# Flatten
-flatten = Flatten()(conv_output)
+# # Fully-connected layer
+# FC_1 = Dense(units=4096, activation='relu')(flatten)
+# FC_1 = Dropout(0.6)(FC_1)
+# FC_2 = Dense(units=4096, activation='relu')(FC_1)
+# FC_2 = Dropout(0.6)(FC_2)
+# FC_2 = Dense(units = 8, activation='softmax')(FC_2)
+# model = Model(inputs = input_training, outputs = FC_2)
+# model.summary()
+model = Sequential()
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
 
-# Fully-connected layer
-FC_1 = Dense(units=4096, activation='relu')(flatten)
-FC_1 = Dropout(0.6)(FC_1)
-FC_2 = Dense(units=4096, activation='relu')(FC_1)
-FC_2 = Dropout(0.6)(FC_2)
-FC_2 = Dense(units = 8, activation='softmax')(FC_2)
-model = Model(inputs = input_training, outputs = FC_2)
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+# model.add(Dropout(0.25))
+# model.add(Activation("relu"))
+# model.add(BatchNormalization())
+
+model.add(Conv2D(64, (3,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+# model.add(Dropout(0.25))
+# model.add(Activation("relu"))
+# model.add(BatchNormalization())
+
+model.add(Conv2D(64, (3,3), padding = "same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+# model.add(Dropout(0.25))
+# model.add(Activation("relu"))
+# model.add(BatchNormalization())
+
+# model.add(Conv2D(128, (3,3), padding = "same"))
+# model.add(Activation("relu"))
+# model.add(BatchNormalization())
+
+# model.add(Dropout(0.4))
+# model.add(Activation("relu"))
+# model.add(BatchNormalization())
+
+model.add(Flatten())
+model.add(Dense(64))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Dropout(0.5))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+
+model.add(Dense(8))
+model.add(Activation("softmax"))
+
 model.summary()
 
 learning_rate = 0.0001
-epochs = 30
+epochs = 50
 
 opt = Adam(learning_rate = learning_rate)
 model.compile(loss= "mean_squared_error",

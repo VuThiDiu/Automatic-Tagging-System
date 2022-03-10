@@ -104,20 +104,24 @@ plot_distribution(df['category'])
 """
 In order to input data to our Keras multi-output model, we will create a helper 
 object to wr=ork as a data generator for out dataset. 
-"""
+"""         
 
 #index 
 print("starting generate image ")
 
 print("starting get index")
 p = np.random.permutation(len(df))
+
+# train_up_to = int(len(df) * train_test_split)
+# train_idx = p[:train_up_to]
+# test_idx = p[train_up_to:]
+
+# train_up_to = int(train_up_to * train_test_split)
+# train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
+
 train_up_to = int(len(df) * train_test_split)
-train_idx = p[:train_up_to]
-test_idx = p[train_up_to:]
-
-train_up_to = int(train_up_to * train_test_split)
-train_idx, valid_idx = train_idx[:train_up_to], train_idx[train_up_to:]
-
+train_idx =  p[:train_up_to]
+valid_idx =  p[train_up_to:]
 
 
 print("starting get array image")
@@ -132,7 +136,7 @@ def generate_images(image_idx):
       category = cloth['category_id']
       file = cloth['file']
 
-      im = Image.open(file).convert('LA')
+      im = Image.open(file).convert('RGB')
       im = im.resize((image_width, image_height))
       im = np.array(im) / 255.0
       try:
@@ -152,22 +156,24 @@ validX, validY = generate_images(valid_idx)
 print("starting with training dataset")
 print(len(train_idx))
 trainX, trainY = generate_images(train_idx)
-print("starting with test dataset")
-print(len(test_idx))
-testX, testY = generate_images(test_idx)
+# print("starting with test dataset")
+# print(len(test_idx))
+# testX, testY = generate_images(test_idx)
 
 
 trainX = np.array(trainX)
 trainY = np.array(trainY)
 
-testX = np.array(testX)
-testY = np.array(testY)
+# testX = np.array(testX)
+# testY = np.array(testY)
 
 validX = np.array(validX)
 validY = np.array(validY)
 
 model = Sequential()
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
+
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
@@ -176,7 +182,7 @@ model.add(Activation("relu"))
 model.add(BatchNormalization())
 
 
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
@@ -196,7 +202,7 @@ model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
-model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,2), padding = "same"))
+model.add(Conv2D(32, (3,3), input_shape = (image_height,image_width,3), padding = "same"))
 model.add(Activation("relu"))
 model.add(BatchNormalization())
 
@@ -284,12 +290,13 @@ fig.add_trace(go.Scatter(
 fig.update_layout(
     height=500,
     width=700,
-    title='Accuracy for color feature',
+    title='Accuracy for category feature',
     xaxis_title='Epoch',
     yaxis_title='Accuracy'
 )
 fig.show()
 
 # evaluating our model on the test set 
-test_bacth_size =  128
+# test_bacth_size =  128
+
 
