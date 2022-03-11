@@ -66,7 +66,7 @@ def parse_dataset(dataset_path):
       filename = filename.split(' ')[0]
       listname = filename.split('_')
       category,color,gender,isAdult = listname[0], listname[1], listname[2], listname[3]
-      return dataset_dict['color_id'][int(color)], listname[0]
+      return dataset_dict['color_id'][int(color)], listname[1]
     except Exception as ex:
       pass
   files = os.listdir(dataset_path)
@@ -341,7 +341,7 @@ model.add(Activation("softmax"))
 
 model.summary()
 
-learning_rate = 0.0001
+learning_rate = 0.001
 epochs = 50
 
 opt = Adam(learning_rate = learning_rate)
